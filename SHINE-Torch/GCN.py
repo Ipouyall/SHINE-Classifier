@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 from torch.nn.parameter import Parameter
 
+
 class GCN(nn.Module):
     def __init__(self, in_features, out_features, bias=True):
         super(GCN, self).__init__()
@@ -19,10 +20,10 @@ class GCN(nn.Module):
         self.reset_parameters()
 
     def reset_parameters(self):
-        stdv = 1. / math.sqrt(self.weight.size(1))
-        self.weight.data.uniform_(-stdv, stdv)
+        std = 1. / math.sqrt(self.weight.size(1))
+        self.weight.data.uniform_(-std, std)
         if self.bias is not None:
-            self.bias.data.uniform_(-stdv, stdv)
+            self.bias.data.uniform_(-std, std)
 
     def forward(self, adj, inputs, identity=False): 
         if identity:

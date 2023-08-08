@@ -4,6 +4,7 @@ import torch.nn.functional as F
 from utils import aggregate
 from GCN import GCN
 
+
 class SHINE(nn.Module):
     def __init__(self, adj_dict, features_dict, in_features_dim, out_features_dim, params):
         super(SHINE, self).__init__()
@@ -58,14 +59,14 @@ class SHINE(nn.Module):
     
     def forward(self, epoch):
         refined_text_input_normed = self.embed_component()
-        Doc_features = torch.cat(refined_text_input_normed, dim=-1)
-        refined_text_input_after_final_linear=F.dropout(self.refined_linear(Doc_features), 
-                                                        p=self.drop_out, training=self.training)
-        cos_simi_total = torch.matmul(Doc_features, Doc_features.t())
+        doc_features = torch.cat(refined_text_input_normed, dim=-1)
+        refined_text_input_after_final_linear = F.dropout(self.refined_linear(doc_features),
+                                                          p=self.drop_out, training=self.training)
+        cos_simi_total = torch.matmul(doc_features, doc_features.t())
         refined_adj_tmp = cos_simi_total * (cos_simi_total > self.threshold).float()
         refined_adj = refined_adj_tmp / (refined_adj_tmp.sum(dim=-1, keepdim=True) + 1e-9)
-        final_text_output = self.final_GCN_2(refined_adj, 
-                                self.final_GCN(refined_adj,refined_text_input_after_final_linear))
+        gcn1_result = self.final_GCN(refined_adj, refined_text_input_after_final_linear)
+        final_text_output = self.final_GCN_2(refined_adj, gcn1_result)
         final_text_output = F.dropout(final_text_output, p=self.drop_out, training=self.training)
         scores = self.FC(final_text_output)
         return scores

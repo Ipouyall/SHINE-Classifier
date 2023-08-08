@@ -10,6 +10,7 @@ from sklearn import metrics
 from utils import fetch_to_tensor
 from model import SHINE
 
+
 class Trainer(object):
     def __init__(self, params):
         self.dataset_name = params.dataset
@@ -23,14 +24,28 @@ class Trainer(object):
         self.type_names = params.type_num_node
         self.data_path = params.data_path
 
-        self.adj_dict, self.features_dict, self.train_idx, self.valid_idx, self.test_idx, self.labels, self.nums_node = self.load_data()
+        (self.adj_dict,
+         self.features_dict,
+         self.train_idx,
+         self.valid_idx,
+         self.test_idx,
+         self.labels,
+         self.nums_node) = self.load_data()
         self.label_num = len(set(self.labels))
         self.labels = torch.tensor(self.labels).to(self.device)
-        self.out_features_dim = [self.label_num, self.hidden_size, self.hidden_size, self.hidden_size, self.hidden_size]
+        self.out_features_dim = [self.label_num,
+                                 self.hidden_size,
+                                 self.hidden_size,
+                                 self.hidden_size,
+                                 self.hidden_size]
         in_fea_final = self.out_features_dim[1] + self.out_features_dim[2] + self.out_features_dim[3]
-        self.in_features_dim = [0, self.nums_node[1], self.nums_node[2], self.nums_node[-1], in_fea_final]
-
-        if self.concat_word_emb: self.in_features_dim[-1] += self.features_dict['word_emb'].shape[-1]
+        self.in_features_dim = [0,
+                                self.nums_node[1],
+                                self.nums_node[2],
+                                self.nums_node[-1],
+                                in_fea_final]
+        if self.concat_word_emb:
+            self.in_features_dim[-1] += self.features_dict['word_emb'].shape[-1]
         self.model = SHINE(self.adj_dict, self.features_dict, self.in_features_dim, self.out_features_dim, params)
         self.model = self.model.to(self.device)
         total_trainable_params = sum(p.numel() for p in self.model.parameters())
@@ -42,7 +57,9 @@ class Trainer(object):
                                  {'params': self.model.GCNs_2[2].parameters()},
                                  {'params': self.model.GCNs[1].parameters()},
                                  {'params': self.model.GCNs_2[0].parameters()},
-                                 {'params': self.model.GCNs_2[1].parameters()}], lr=self.lr, weight_decay=self.weight_decay)
+                                 {'params': self.model.GCNs_2[1].parameters()}],
+                                lr=self.lr,
+                                weight_decay=self.weight_decay)
 
     def train(self):
         global_best_acc = 0
@@ -73,7 +90,7 @@ class Trainer(object):
             loss = loss.item()
             acc = torch.eq(torch.argmax(train_scores, dim=-1), train_labels).float().mean().item()
             print('Epoch {}  loss: {:.4f} acc: {:.4f} time{:.4f}'.format(i, loss, acc,time.time()-t))
-            if i%5 == 0:
+            if i % 5 == 0:
                 acc_valid, loss_valid, f1_valid, acc_test, loss_test, f1_test = self.test(i) 
                 if acc_test > global_best_acc:
                     global_best_acc = acc_test
@@ -88,7 +105,7 @@ class Trainer(object):
                 best_acc = global_best_acc
                 best_f1 = global_best_f1
                 best_epoch = global_best_epoch
-            if i%50==0:
+            if i % 50 == 0:
                 print('VALID: VALID ACC', best_valid_acc, ' VALID F1', best_valid_f1, 'EPOCH', best_valid_epoch) 
                 print('VALID: TEST ACC', best_test_acc, 'TEST F1', best_test_f1, 'EPOCH', best_valid_epoch)
                 print('GLOBAL: TEST ACC', global_best_acc, 'TEST F1', global_best_f1, 'EPOCH', global_best_epoch)
@@ -198,7 +215,7 @@ class Trainer(object):
             for j, idx in enumerate(idxs):
                 if j < train_list[i]:
                     train_idx.append(idx)
-                elif j >= train_list[i] and j < train_list[i] + valid_list[i]:
+                elif train_list[i] <= j < train_list[i] + valid_list[i]:
                     valid_idx.append(idx)
                 else:
                     test_idx.append(idx)
