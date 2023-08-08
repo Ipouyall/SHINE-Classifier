@@ -1,4 +1,4 @@
-# SHINE-EMNLP21
+**# SHINE-EMNLP21
 
 <p align="center"><img src="SHINE-thumbnail.png" alt="logo" width="600px" />
 
@@ -26,24 +26,16 @@ Please cite our paper if you find it helpful. Thanks.
 ```
 
 ## Environment  
-We provide both the **PyTorch** and **PaddlePaddle** implementations of SHINE in this repository: 
+We provide  the **PyTorch** implementations of SHINE in this repository: 
 
 ### Torch Version:
 - Python 3.7
 - Pytorch 1.2
 
-### Paddle Version:
-- Python 3.7
-- Paddlepaddle 2.2
-
 ## Quick Start
 If you want to run the Torch version:
 ```
 cd SHINE-Torch
-```
-Or if you want to run the PaddlePaddle version:
-```
-cd SHINE-Paddle
 ```
 
 Then, You can quickly check out how SHINE operates on the Twitter dataset by:
@@ -64,14 +56,6 @@ Python train.py --dataset snippets --gpu 2
 
 If you want to try SHINE on your own datasets, you need to make your data in the same form of "snippets_split.json".
 
-For the pretrained NELL entity embedding and Glove6B word embedding used in SHINE, you can download them from [here](https://drive.google.com/file/d/1gzIsN6XVqEXPJQR8MXVolbmKqlPgU_YA/view?usp=sharing). 
-Afterwards, you can preprocess the data by:
-```
-Python preprocess.py
-```
-
-
-
-
+For the pretrained NELL entity embedding and Glove6B word embedding used in SHINE, you can download them from [here](https://drive.google.com/file/d/1gzIsN6XVqEXPJQR8MXVolbmKqlPgU_YA/view?usp=sharing).
 
 
