@@ -10,14 +10,14 @@ def fetch_to_tensor(dicts, dict_type, device):
     return torch.tensor(dicts[dict_type], dtype=torch.float, device=device)
 
 
-def aggregate(adj_dict, incomming, other_type_num, softmax=False):
+def aggregate(adj_dict, incoming, other_type_num, softmax=False):
     aggregate_output = []
     for i in range(other_type_num):
         adj = adj_dict[str(0) + str(i + 1)]
 
         if softmax:
             adj = adj.masked_fill(adj.le(0), value=-1e9).softmax(-1)
-        aggregate_output.append(torch.matmul(adj, incomming[i]) / (torch.sum(adj, dim=-1).unsqueeze(-1) + 1e-9))
+        aggregate_output.append(torch.matmul(adj, incoming[i]) / (torch.sum(adj, dim=-1).unsqueeze(-1) + 1e-9))
     return aggregate_output
 
 

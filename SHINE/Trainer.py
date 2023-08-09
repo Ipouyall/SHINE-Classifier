@@ -129,7 +129,7 @@ class Trainer(object):
             f1_valid = metrics.f1_score(valid_labels.detach().cpu().numpy(),
                                         torch.argmax(valid_scores, -1).detach().cpu().numpy(), average='macro')
             print('Epoch {}  loss: {:.4f} acc: {:.4f}'.format(epoch, loss_train, acc_train),
-                  'Valid  loss: {:.4f}  acc: {:.4f}  f1: {:.4f}'.format(loss_valid, acc_valid, f1_valid))
+                  '\nValid  loss: {:.4f}  acc: {:.4f}  f1: {:.4f}'.format(loss_valid, acc_valid, f1_valid))
             test_scores = output[self.test_idx]
             test_labels = self.labels[self.test_idx]
             loss_test = F.cross_entropy(test_scores, test_labels).item()
@@ -215,9 +215,9 @@ class Trainer(object):
         train_idx = []
         valid_idx = []
         test_idx = []
-        for i, idxs in enumerate(label_dict.values()):
-            np.random.shuffle(idxs)
-            for j, idx in enumerate(idxs):
+        for i, ids in enumerate(label_dict.values()):
+            np.random.shuffle(ids)
+            for j, idx in enumerate(ids):
                 if j < train_list[i]:
                     train_idx.append(idx)
                 elif train_list[i] <= j < train_list[i] + valid_list[i]:

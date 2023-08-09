@@ -1,6 +1,3 @@
-from __future__ import division
-from __future__ import print_function
-
 import argparse
 
 import torch
@@ -26,18 +23,20 @@ if __name__ == '__main__':
                         help="hidden size")
     parser.add_argument("--threshold", type=float, default=2.7,
                         help="threshold for graph construction")
-    parser.add_argument("--lr", type=float, default=1e-3,
+    parser.add_argument("--lr", type=float, default=1e-4,
                         help="learning rate of the optimizer")
-    parser.add_argument("--weight_decay", type=float, default=1e-4,
+    parser.add_argument("--weight_decay", type=float, default=1e-5,
                         help="adjust the learning rate via epochs")
     parser.add_argument("--drop_out", type=float, default=0.7,
                         help="dropout rate")
-    parser.add_argument("--max_epoch", type=int, default=1000,
+    parser.add_argument("--max_epoch", type=int, default=500,
                         help="max numer of epochs")
     parser.add_argument("--concat_word_emb", type=bool, default=True,
                         help="concat word embedding with pretrained model")
     params = parser.parse_args()
     params.type_num_node = ['query', 'tag', 'word', 'entity']
+
+    params.dataset = 'olidv2'
 
     params.data_path = params.data_path + '/{}_data/'.format(params.dataset)
     params.save_name = params.save_path + './result_{}.json'.format(params.dataset)
