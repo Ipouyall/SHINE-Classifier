@@ -8,7 +8,7 @@ import torch
 @dataclass()
 class Config:
     delete_stopwords: bool = False
-    stopwords_path: Union[str, None] = "./SHONE/preprocess/stopwords_en.txt"
+    stopwords_path: Union[str, None] = "./SHINE/preprocess/stopwords_en.txt"
     raw_data_path: Union[str, None] = None  # if preprocess needed, place the original data path
     force_preprocess: bool = False
 

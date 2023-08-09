@@ -129,10 +129,10 @@ def download_and_extract(file_id):
     subprocess.run(['gdown', file_id])
 
     # Extract the downloaded ZIP file using jar (requires Java)
-    subprocess.run(['jar', 'xf', f'./{file_id}.zip'])
+    subprocess.run(['jar', 'xf', f'./SHINE/{file_id}.zip'])
 
     # Clean up the downloaded ZIP file
-    os.remove(f'./{file_id}.zip')
+    os.remove(f'./SHINE/{file_id}.zip')
 
 
 def make_node2id_eng_text(config: Config):
