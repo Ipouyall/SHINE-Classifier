@@ -136,7 +136,7 @@ def download_and_extract(file_id):
 
 
 def make_node2id_eng_text(config: Config):
-    if config.delete_stopwords is not None:
+    if config.stopwords_path is not None:
         stop_word = load_stopwords(config.stopwords_path)
     elif config.delete_stopwords:
         stop_word = set(stopwords.words('english'))
