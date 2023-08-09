@@ -166,10 +166,10 @@ def make_node2id_eng_text(config: Config):
             freq_stop += 1
     print('freq_stop num', freq_stop)
 
-    pretrained_emb_path = find_case_insensitive_file('.', "pretrained_emb")
-    if pretrained_emb_path is None:
-        download_and_extract("1gzIsN6XVqEXPJQR8MXVolbmKqlPgU_YA")
-        pretrained_emb_path = find_case_insensitive_file('.', "pretrained_emb")
+    pretrained_emb_path = find_case_insensitive_file(config.embedding_path, "pretrained_emb")
+    # if pretrained_emb_path is None:
+    #     download_and_extract("1gzIsN6XVqEXPJQR8MXVolbmKqlPgU_YA")
+    #     pretrained_emb_path = find_case_insensitive_file('.', "pretrained_emb")
 
     ent2id_new = json.load(open(f'{pretrained_emb_path}/NELL_KG/ent2ids_refined', 'r'))
     adj_ent_index = []

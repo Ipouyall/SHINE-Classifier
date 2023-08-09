@@ -11,6 +11,7 @@ class Config:
     stopwords_path: Union[str, None] = "./SHINE/preprocess/stopwords_en.txt"
     raw_data_path: Union[str, None] = None  # if preprocess needed, place the original data path
     force_preprocess: bool = False
+    embedding_path: str = '.'
 
     data_path: str = "./data"
     dataset: str = "olidv2"  # by default, 'snippets', 'twitter', and 'olidv2' are available
