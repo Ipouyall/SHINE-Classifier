@@ -1,14 +1,16 @@
-import numpy as np
-import pickle as pkl
 import json
+import math
+import pickle as pkl
+import time
+
+import numpy as np
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
-import time
-import math
 from sklearn import metrics
-from utils import fetch_to_tensor
+
 from model import SHINE
+from utils import fetch_to_tensor
 
 
 class Trainer(object):
@@ -68,18 +70,18 @@ class Trainer(object):
         best_test_acc = 0
         best_test_f1 = 0
         best_valid_epoch = 0
-        best_valid_f1=0
+        best_valid_f1 = 0
         best_valid_acc = 0
         acc_valid = 0
         loss_valid = 0
         f1_valid = 0
-        acc_test=0
+        acc_test = 0
         loss_test = 0
         f1_test = 0
         best_acc = 0
         best_f1 = 0
         for i in range(1, self.max_epoch + 1):
-            t=time.time()
+            t = time.time()
             output = self.model(i)
             train_scores = output[self.train_idx]
             train_labels = self.labels[self.train_idx]
@@ -89,24 +91,24 @@ class Trainer(object):
             self.optim.step()
             loss = loss.item()
             acc = torch.eq(torch.argmax(train_scores, dim=-1), train_labels).float().mean().item()
-            print('Epoch {}  loss: {:.4f} acc: {:.4f} time{:.4f}'.format(i, loss, acc,time.time()-t))
+            print('Epoch {}  loss: {:.4f} acc: {:.4f} time{:.4f}'.format(i, loss, acc, time.time() - t))
             if i % 5 == 0:
-                acc_valid, loss_valid, f1_valid, acc_test, loss_test, f1_test = self.test(i) 
+                acc_valid, loss_valid, f1_valid, acc_test, loss_test, f1_test = self.test(i)
                 if acc_test > global_best_acc:
                     global_best_acc = acc_test
                     global_best_f1 = f1_test
                     global_best_epoch = i
                 if acc_valid > best_valid_acc:
                     best_valid_acc = acc_valid
-                    best_valid_f1 = f1_valid 
-                    best_test_acc = acc_test 
+                    best_valid_f1 = f1_valid
+                    best_test_acc = acc_test
                     best_test_f1 = f1_test
                     best_valid_epoch = i
                 best_acc = global_best_acc
                 best_f1 = global_best_f1
                 best_epoch = global_best_epoch
             if i % 50 == 0:
-                print('VALID: VALID ACC', best_valid_acc, ' VALID F1', best_valid_f1, 'EPOCH', best_valid_epoch) 
+                print('VALID: VALID ACC', best_valid_acc, ' VALID F1', best_valid_f1, 'EPOCH', best_valid_epoch)
                 print('VALID: TEST ACC', best_test_acc, 'TEST F1', best_test_f1, 'EPOCH', best_valid_epoch)
                 print('GLOBAL: TEST ACC', global_best_acc, 'TEST F1', global_best_f1, 'EPOCH', global_best_epoch)
         return best_acc, best_f1
@@ -124,17 +126,20 @@ class Trainer(object):
             valid_labels = self.labels[self.valid_idx]
             loss_valid = F.cross_entropy(valid_scores, valid_labels).item()
             acc_valid = torch.eq(torch.argmax(valid_scores, dim=-1), valid_labels).float().mean().item()
-            f1_valid = metrics.f1_score(valid_labels.detach().cpu().numpy(),torch.argmax(valid_scores,-1).detach().cpu().numpy(),average='macro')
+            f1_valid = metrics.f1_score(valid_labels.detach().cpu().numpy(),
+                                        torch.argmax(valid_scores, -1).detach().cpu().numpy(), average='macro')
             print('Epoch {}  loss: {:.4f} acc: {:.4f}'.format(epoch, loss_train, acc_train),
-                'Valid  loss: {:.4f}  acc: {:.4f}  f1: {:.4f}'.format(loss_valid, acc_valid, f1_valid))
+                  'Valid  loss: {:.4f}  acc: {:.4f}  f1: {:.4f}'.format(loss_valid, acc_valid, f1_valid))
             test_scores = output[self.test_idx]
             test_labels = self.labels[self.test_idx]
             loss_test = F.cross_entropy(test_scores, test_labels).item()
             acc_test = torch.eq(torch.argmax(test_scores, dim=-1), test_labels).float().mean().item()
-            f1_test = metrics.f1_score(test_labels.detach().cpu().numpy(),torch.argmax(test_scores,-1).detach().cpu().numpy(),average='macro')
-            print('Test  loss: {:.4f} acc: {:.4f} f1: {:.4f} time: {:.4f}'.format(loss_test, acc_test, f1_test, time.time() - t))
+            f1_test = metrics.f1_score(test_labels.detach().cpu().numpy(),
+                                       torch.argmax(test_scores, -1).detach().cpu().numpy(), average='macro')
+            print('Test  loss: {:.4f} acc: {:.4f} f1: {:.4f} time: {:.4f}'.format(loss_test, acc_test, f1_test,
+                                                                                  time.time() - t))
         self.model.training = True
-        return acc_valid, loss_valid, f1_valid, acc_test, loss_test, f1_test   
+        return acc_valid, loss_valid, f1_valid, acc_test, loss_test, f1_test
 
     def load_data(self):
         start = time.time()
@@ -143,7 +148,7 @@ class Trainer(object):
         nums_node = []
         for i in range(1, len(self.type_names)):
             adj_dict[str(0) + str(i)] = pkl.load(
-                    open(self.data_path + './adj_{}2{}.pkl'.format(self.type_names[0], self.type_names[i]), 'rb'))
+                open(self.data_path + './adj_{}2{}.pkl'.format(self.type_names[0], self.type_names[i]), 'rb'))
             if i == 1:
                 nums_node.append(adj_dict[str(0) + str(i)].shape[0])
             if i != 3:
@@ -160,25 +165,25 @@ class Trainer(object):
 
         feature_dict['word_emb'] = torch.tensor(pkl.load(
             open(self.data_path + './word_emb.pkl', 'rb')), dtype=torch.float).to(self.device)
-        ent_emb=feature_dict['3']
+        ent_emb = feature_dict['3']
         ent_emb_normed = ent_emb / np.sqrt(np.square(ent_emb).sum(-1, keepdims=True))
         adj_dict['33'] = np.matmul(ent_emb_normed, ent_emb_normed.transpose())
         adj_dict['33'] = adj_dict['33'] * np.float32(adj_dict['33'] > 0)
         adj_dict['22'] = np.array(adj_dict['22'].toarray())
         adj_dict['02'] = np.array(adj_dict['02'].toarray())
         adj_dict['03'] = np.array(adj_dict['03'].toarray())
-        
+
         adj = {}
         feature = {}
         for i in adj_dict.keys():
             adj[i] = fetch_to_tensor(adj_dict, i, self.device)
         for i in feature_dict.keys():
             feature[i] = fetch_to_tensor(feature_dict, i, self.device)
-        
+
         train_set = json.load(open(self.data_path + './train_idx.json'))
         test_set = json.load(open(self.data_path + './test_idx.json'))
         labels = json.load(open(self.data_path + './labels.json'))
-        
+
         data_index = train_set + test_set
         Sumofquery = len(data_index)
         label_dict = {}
@@ -186,10 +191,10 @@ class Trainer(object):
             label_dict[i] = []
         for j, label in enumerate(labels):
             label_dict[label].append(j)
-        len_train_idx = len(label_dict) * 20 
+        len_train_idx = len(label_dict) * 20
         train_list = []
         valid_list = []
-        byclass = True if self.dataset_name=='ohsu_title' else False 
+        byclass = True if self.dataset_name == 'ohsu_title' else False
         if not byclass:
             for i in label_dict.items():
                 train_list.append(20)
@@ -202,7 +207,7 @@ class Trainer(object):
                 residue.append(num[0])
                 train_list.append(int(num[1]))
                 max_supp -= int(num[1])
-            sorted_list = sorted(range(len(residue)), key= lambda i : residue[i], reverse=True)[ : max_supp]
+            sorted_list = sorted(range(len(residue)), key=lambda i: residue[i], reverse=True)[: max_supp]
             for i, val in enumerate(train_list):
                 if i in sorted_list:
                     train_list[i] += 1
@@ -221,8 +226,8 @@ class Trainer(object):
                     test_idx.append(idx)
         print(len(train_idx))
         print(len(valid_idx))
-        print(len(test_idx)) 
-        print('data process time: {}'.format(time.time()-start))
+        print(len(test_idx))
+        print('data process time: {}'.format(time.time() - start))
         return adj, feature, train_idx, valid_idx, test_idx, labels, nums_node
 
     def save(self, path=None):

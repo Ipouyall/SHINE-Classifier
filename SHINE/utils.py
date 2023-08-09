@@ -1,8 +1,9 @@
-import os 
-import torch
-import random
-import numpy as np
 import json
+import os
+import random
+
+import numpy as np
+import torch
 
 
 def fetch_to_tensor(dicts, dict_type, device):

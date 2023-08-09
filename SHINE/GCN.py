@@ -1,4 +1,5 @@
 import math
+
 import torch
 import torch.nn as nn
 from torch.nn.parameter import Parameter
@@ -25,7 +26,7 @@ class GCN(nn.Module):
         if self.bias is not None:
             self.bias.data.uniform_(-std, std)
 
-    def forward(self, adj, inputs, identity=False): 
+    def forward(self, adj, inputs, identity=False):
         if identity:
-            return torch.matmul(adj,self.weight)
+            return torch.matmul(adj, self.weight)
         return torch.matmul(adj, torch.matmul(inputs, self.weight))

@@ -1,12 +1,15 @@
 from __future__ import division
 from __future__ import print_function
+
 import argparse
-from utils import save_res, set_seed
-from Trainer import Trainer
+
 import torch
 
+from Trainer import Trainer
+from utils import save_res, set_seed
+
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description = "model params")
+    parser = argparse.ArgumentParser(description="model params")
     parser.add_argument("--gpu", type=int, default=0,
                         help="choose which GPU")
     parser.add_argument("--dataset", "-d", type=str, default='twitter',
@@ -17,9 +20,9 @@ if __name__ == '__main__':
                         help="save path")
     parser.add_argument('--disable_cuda', action='store_true',
                         help='disable CUDA')
-    parser.add_argument("--seed", type=int, default=119, 
+    parser.add_argument("--seed", type=int, default=119,
                         help="seeds for random initial")
-    parser.add_argument("--hidden_size", type=int, default=200, 
+    parser.add_argument("--hidden_size", type=int, default=200,
                         help="hidden size")
     parser.add_argument("--threshold", type=float, default=2.7,
                         help="threshold for graph construction")
@@ -36,7 +39,7 @@ if __name__ == '__main__':
     params = parser.parse_args()
     params.type_num_node = ['query', 'tag', 'word', 'entity']
     params.data_path = params.data_path + './{}_data/'.format(params.dataset)
-    params.save_name = params.save_path + './result_torch_{}.json'.format(params.dataset)
+    params.save_name = params.save_path + './result_{}.json'.format(params.dataset)
     if not params.disable_cuda and torch.cuda.is_available():
         params.device = torch.device('cuda:%d' % params.gpu)
     else:

@@ -1,16 +1,16 @@
 import json
-import numpy as np
-import pickle as pkl
 import math
-import nltk
-from tqdm import tqdm
 import os
-from scipy.sparse import coo_matrix
-import matplotlib.pyplot as plt
+import pickle as pkl
 import re
 
+import nltk
+import numpy as np
+from scipy.sparse import coo_matrix
+from tqdm import tqdm
 
-def clean_str(string,use=True):
+
+def clean_str(string, use=True):
     """
     Tokenization/string cleaning for all datasets except for SST.
     Original taken from https://github.com/yoonkim/CNN_sentence/blob/master/process_data.py
@@ -32,6 +32,7 @@ def clean_str(string,use=True):
     string = re.sub(r"\?", " \? ", string)
     string = re.sub(r"\s{2,}", " ", string)
     return string.strip().lower()
+
 
 def load_stopwords(filepath='./stopwords_en.txt'):
     stopwords = set()
@@ -96,8 +97,8 @@ def PMI(inputs, mapping, window_size, sparse):
     else:
         PMI_adj = np.zeros([len(mapping), len(mapping)], dtype=np.float64)
         for i in range(len(mapping)):
-            PMI_adj[i, i] = 1  
-            tmp = [ele for ele in np.nonzero(W_ij[i])[0] if ele > i] 
+            PMI_adj[i, i] = 1
+            tmp = [ele for ele in np.nonzero(W_ij[i])[0] if ele > i]
             # for j in range(i + 1, len(mapping)):
             for j in tmp:
                 pmi = math.log(W_ij[i, j] * W_count / W_i[i] / W_i[j])
@@ -157,7 +158,7 @@ def make_node2id_eng_text(dataset_name, remove_StopWord=False):
     labels = []
     tag_list = []
     word_list = []
-    ent_mapping = {} 
+    ent_mapping = {}
 
     for i, item in enumerate(tqdm(f_train.values())):
         # item=f_train[str(i)]
@@ -180,7 +181,7 @@ def make_node2id_eng_text(dataset_name, remove_StopWord=False):
             print(words)
 
         ent_list = []
-        index = [] 
+        index = []
         for key in ent2id_new.keys():
             if key in query.lower():
                 ent_list.append(key)
@@ -236,7 +237,7 @@ def make_node2id_eng_text(dataset_name, remove_StopWord=False):
             print(query)
             print(query)
 
-        test_idx.append(len(test_idx)+ len(train_idx))
+        test_idx.append(len(test_idx) + len(train_idx))
 
     print(tag_set)
     json.dump([adj_ent_index, ent_mapping],
@@ -285,9 +286,9 @@ def make_node2id_eng_text(dataset_name, remove_StopWord=False):
     if len(nodes_all) != nodes_num:
         print('duplicate name error')
 
-    print('len_train',len(train_idx))
-    print('len_test',len(test_idx))
-    print('len_quries',len(query_nodes))
+    print('len_train', len(train_idx))
+    print('len_test', len(test_idx))
+    print('len_quries', len(query_nodes))
 
     tags_mapping = {key: value for value, key in enumerate(tag_nodes)}
     words_mapping = {key: value for value, key in enumerate(word_nodes)}
@@ -327,7 +328,7 @@ def make_node2id_eng_text(dataset_name, remove_StopWord=False):
     pkl.dump(np.array(embs, dtype=np.float64), open('./{}_data/word_emb.pkl'.format(dataset_name), 'wb'))
 
 
-dataset_name='snippets'
+dataset_name = 'snippets'
 if dataset_name in ['mr', 'snippets', 'tagmynews']:
     remove_StopWord = True
 else:
