@@ -119,12 +119,13 @@ def find_case_insensitive_file(directory, target_filename):
 
 
 def make_node2id_eng_text(dataset_name, remove_StopWord=False):
-    stop_word = load_stopwords()
+    stop_word = load_stopwords('preprocess/stopwords_en.txt')
     stop_word.add('')
     os.makedirs(f'./{dataset_name}_data', exist_ok=True)
 
-    f_train = json.load(open('./{}_split.json'.format(dataset_name)))['train']
-    f_test = json.load(open('./{}_split.json'.format(dataset_name)))['test']
+    dataset_path = f'dataset/{dataset_name}_split.json'
+    f_train = json.load(open(dataset_path))['train']
+    f_test = json.load(open(dataset_path))['test']
 
     from collections import defaultdict
     word_freq = defaultdict(int)
@@ -137,7 +138,7 @@ def make_node2id_eng_text(dataset_name, remove_StopWord=False):
         for one in words:
             word_freq[one.lower()] += 1
     freq_stop = 0
-    for word,count in word_freq.items():
+    for word, count in word_freq.items():
         if count < 5:
             stop_word.add(word)
             freq_stop += 1
