@@ -313,8 +313,8 @@ def make_node2id_eng_text(dataset_name, remove_StopWord=False):
               ensure_ascii=False)
     json.dump(word_nodes, open('./{}_data/word_id2_list.json'.format(dataset_name), 'w'), ensure_ascii=False)
 
-    glove_emb = pkl.load(open('./pretrained_emb/old_glove_6B/embedding_glove.p', 'rb'))
-    vocab = pkl.load(open('./pretrained_emb/old_glove_6B/vocab.pkl', 'rb'))
+    glove_emb = pkl.load(open(f'{pretrained_emb_path}/old_glove_6B/embedding_glove.p', 'rb'))
+    vocab = pkl.load(open(f'{pretrained_emb_path}/old_glove_6B/vocab.pkl', 'rb'))
     embs = []
     err_count = 0
     for word in word_nodes:
