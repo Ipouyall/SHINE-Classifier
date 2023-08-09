@@ -39,8 +39,8 @@ class Config:
         self.save_name = self.save_path + f'./result_{self.dataset}.json'
         self.need_preprocess = self.force_preprocess
 
-        if not os.path.exists(self.need_preprocess):
-            print(f"Can't find specified dataset at {self.data_path}")
+        if not os.path.exists(self.raw_data_path) and self.need_preprocess:
+            print(f"Can't find specified dataset at {self.raw_data_path}")
             raise FileNotFoundError()
 
         if not os.path.exists(self.data_path) and not self.need_preprocess:
@@ -50,7 +50,7 @@ class Config:
                 print(f"Couldn't find specified dataset at {self.data_path}")
                 raise FileNotFoundError()
 
-        if self.delete_stopwords and self.stopwords_path in None:
+        if self.delete_stopwords and not os.path.exists(self.stopwords_path):
             print(f"Couldn't find stopwords file at {self.stopwords_path}\n" +
                   "::We would use NLTK's english stopwords instead")
             self.stopwords_path = None
