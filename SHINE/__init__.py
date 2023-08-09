@@ -1,2 +1,2 @@
-from .config import Config
-from .runner import Runner
+from SHINE.config import Config
+from SHINE.runner import Runner

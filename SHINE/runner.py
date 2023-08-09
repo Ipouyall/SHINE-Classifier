@@ -1,7 +1,7 @@
-from .preprocess.preprocess import make_node2id_eng_text
-from .config import Config
-from .trainer import Trainer
-from .utils import set_seed, save_res
+from SHINE.preprocess.preprocess import make_node2id_eng_text
+from SHINE.config import Config
+from SHINE.trainer import Trainer
+from SHINE.utils import set_seed, save_res
 
 
 class Runner:

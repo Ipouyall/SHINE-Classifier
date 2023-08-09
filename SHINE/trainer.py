@@ -12,7 +12,7 @@ from sklearn import metrics
 from model import SHINE
 from utils import fetch_to_tensor
 
-from.config import Config
+from SHINE.config import Config
 
 
 class Trainer(object):

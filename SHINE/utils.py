@@ -7,7 +7,7 @@ import torch
 
 from collections import defaultdict
 
-from .config import Config
+from SHINE.config import Config
 
 
 def fetch_to_tensor(dicts, dict_type, device):
