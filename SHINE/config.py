@@ -54,10 +54,5 @@ class Config:
             print(f"Couldn't find stopwords file at {self.stopwords_path}\n" +
                   "::We would use NLTK's english stopwords instead")
             self.stopwords_path = None
-
-
-
-# set_seed(params.seed)
-# trainer = Trainer(params)
-# test_acc, best_f1 = trainer.train()
-# save_res(params, test_acc, best_f1)
+        if not self.delete_stopwords:
+            self.stopwords_path = None

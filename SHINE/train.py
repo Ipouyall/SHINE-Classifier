@@ -2,7 +2,7 @@ import argparse
 
 import torch
 
-from Trainer import Trainer
+from trainer import Trainer
 from utils import save_res, set_seed
 
 if __name__ == '__main__': pass  # TODO: should be compatible with config version

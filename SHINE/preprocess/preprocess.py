@@ -3,11 +3,14 @@ import math
 import os
 import pickle as pkl
 import re
+import subprocess
 
 import nltk
+from nltk.corpus import stopwords
 import numpy as np
 from scipy.sparse import coo_matrix
 from tqdm import tqdm
+from collections import defaultdict
 
 from SHINE.config import Config
 
@@ -121,16 +124,32 @@ def find_case_insensitive_file(directory, target_filename):
     return None
 
 
-def make_node2id_eng_text(config: Config):
-    stop_word = load_stopwords('preprocess/stopwords_en.txt')
-    stop_word.add('')
-    os.makedirs(f'./{dataset_name}_data', exist_ok=True)
+def download_and_extract(file_id):
+    # Download the file using gdown
+    subprocess.run(['gdown', file_id])
 
-    dataset_path = f'dataset/{dataset_name}_split.json'
+    # Extract the downloaded ZIP file using jar (requires Java)
+    subprocess.run(['jar', 'xf', f'./{file_id}.zip'])
+
+    # Clean up the downloaded ZIP file
+    os.remove(f'./{file_id}.zip')
+
+
+def make_node2id_eng_text(config: Config):
+    if config.delete_stopwords is not None:
+        stop_word = load_stopwords(config.stopwords_path)
+    elif config.delete_stopwords:
+        stop_word = set(stopwords.words('english'))
+    else:
+        stop_word = set()
+    stop_word.add('')
+
+    os.makedirs(config.data_path, exist_ok=True)
+
+    dataset_path = config.raw_data_path
     f_train = json.load(open(dataset_path))['train']
     f_test = json.load(open(dataset_path))['test']
 
-    from collections import defaultdict
     word_freq = defaultdict(int)
     for item in f_train.values():
         words = clean_str(item['text']).split(' ')
@@ -148,6 +167,9 @@ def make_node2id_eng_text(config: Config):
     print('freq_stop num', freq_stop)
 
     pretrained_emb_path = find_case_insensitive_file('.', "pretrained_emb")
+    if pretrained_emb_path is None:
+        download_and_extract("1gzIsN6XVqEXPJQR8MXVolbmKqlPgU_YA")
+        pretrained_emb_path = find_case_insensitive_file('.', "pretrained_emb")
 
     ent2id_new = json.load(open(f'{pretrained_emb_path}/NELL_KG/ent2ids_refined', 'r'))
     adj_ent_index = []
@@ -175,7 +197,7 @@ def make_node2id_eng_text(config: Config):
         tag_list.append(' '.join(tags))
         tag_set.update(tags)
         labels.append(item['label'])
-        if remove_StopWord:
+        if config.delete_stopwords:
             words = [one.lower() for one in query.split(' ') if one not in stop_word]
         else:
             words = [one.lower() for one in query.split(' ')]
@@ -213,7 +235,7 @@ def make_node2id_eng_text(config: Config):
         tag_list.append(' '.join(tags))
         tag_set.update(tags)
         labels.append(item['label'])
-        if remove_StopWord:
+        if config.delete_stopwords:
             words = [one.lower() for one in query.split(' ') if one not in stop_word]
         else:
             words = [one.lower() for one in query.split(' ')]
@@ -227,7 +249,8 @@ def make_node2id_eng_text(config: Config):
                     ent_list.append(key)
                     ent_mapping[key] = len(ent_mapping)
                     entity_set.update(ent_list)
-                if ent_mapping[key] not in index: index.append(ent_mapping[key])
+                if ent_mapping[key] not in index:
+                    index.append(ent_mapping[key])
         adj_ent_index.append(index)
 
         word_list.append(' '.join(words))
@@ -243,7 +266,7 @@ def make_node2id_eng_text(config: Config):
 
     print(tag_set)
     json.dump([adj_ent_index, ent_mapping],
-              open('./{}_data/index_and_mapping.json'.format(dataset_name), 'w'), ensure_ascii=False)
+              open(f'{config.data_path}/index_and_mapping.json', 'w'), ensure_ascii=False)
     ent_emb = []
     TransE_emb_file = np.loadtxt(f'{pretrained_emb_path}/NELL_KG/entity2vec.TransE')
     TransE_emb = []
@@ -271,8 +294,8 @@ def make_node2id_eng_text(config: Config):
     ent_emb_normed = ent_emb / np.sqrt(np.square(ent_emb).sum(-1, keepdims=True))
     adj_emb = np.matmul(ent_emb_normed, ent_emb_normed.transpose())
     print('entity_emb_cos', np.mean(np.mean(adj_emb, -1)))
-    pkl.dump(np.array(ent_emb), open('./{}_data/entity_emb.pkl'.format(dataset_name), 'wb'))
-    pkl.dump(adj_ent, open('./{}_data/adj_query2entity.pkl'.format(dataset_name), 'wb'))
+    pkl.dump(np.array(ent_emb), open(f'{config.data_path}/entity_emb.pkl', 'wb'))
+    pkl.dump(adj_ent, open(f'{config.data_path}/adj_query2entity.pkl', 'wb'))
 
     word_nodes = list(words_set)
     tag_nodes = list(tag_set)
@@ -296,24 +319,24 @@ def make_node2id_eng_text(config: Config):
     words_mapping = {key: value for value, key in enumerate(word_nodes)}
     adj_query2tag = tf_idf_transform(tag_list, tags_mapping)
     adj_tag = PMI(tag_list, tags_mapping, window_size=5, sparse=False)
-    pkl.dump(adj_query2tag, open('./{}_data/adj_query2tag.pkl'.format(dataset_name), 'wb'))
-    pkl.dump(adj_tag, open('./{}_data/adj_tag.pkl'.format(dataset_name), 'wb'))
+    pkl.dump(adj_query2tag, open(f'{config.data_path}/adj_query2tag.pkl', 'wb'))
+    pkl.dump(adj_tag, open(f'{config.data_path}/adj_tag.pkl', 'wb'))
     adj_query2word = tf_idf_transform(word_list, words_mapping, sparse=True)
     adj_word = PMI(word_list, words_mapping, window_size=5, sparse=True)
-    pkl.dump(adj_query2word, open('./{}_data/adj_query2word.pkl'.format(dataset_name), 'wb'))
-    pkl.dump(adj_word, open('./{}_data/adj_word.pkl'.format(dataset_name), 'wb'))
-    json.dump(train_idx, open('./{}_data/train_idx.json'.format(dataset_name), 'w'), ensure_ascii=False)
-    json.dump(test_idx, open('./{}_data/test_idx.json'.format(dataset_name), 'w'), ensure_ascii=False)
+    pkl.dump(adj_query2word, open(f'{config.data_path}/adj_query2word.pkl', 'wb'))
+    pkl.dump(adj_word, open(f'{config.data_path}/adj_word.pkl', 'wb'))
+    json.dump(train_idx, open(f'{config.data_path}/train_idx.json', 'w'), ensure_ascii=False)
+    json.dump(test_idx, open(f'{config.data_path}/test_idx.json', 'w'), ensure_ascii=False)
 
     label_map = {value: i for i, value in enumerate(set(labels))}
-    json.dump([label_map[label] for label in labels], open('./{}_data/labels.json'.format(dataset_name), 'w'),
+    json.dump([label_map[label] for label in labels], open(f'{config.data_path}/labels.json', 'w'),
               ensure_ascii=False)
-    json.dump(query_nodes, open('./{}_data/query_id2_list.json'.format(dataset_name), 'w'),
+    json.dump(query_nodes, open(f'{config.data_path}/query_id2_list.json', 'w'),
               ensure_ascii=False)
-    json.dump(tag_nodes, open('./{}_data/tag_id2_list.json'.format(dataset_name), 'w'), ensure_ascii=False)
-    json.dump(entity_nodes, open('./{}_data/entity_id2_list.json'.format(dataset_name), 'w'),
+    json.dump(tag_nodes, open(f'{config.data_path}/tag_id2_list.json', 'w'), ensure_ascii=False)
+    json.dump(entity_nodes, open(f'{config.data_path}/entity_id2_list.json', 'w'),
               ensure_ascii=False)
-    json.dump(word_nodes, open('./{}_data/word_id2_list.json'.format(dataset_name), 'w'), ensure_ascii=False)
+    json.dump(word_nodes, open(f'{config.data_path}/word_id2_list.json', 'w'), ensure_ascii=False)
 
     glove_emb = pkl.load(open(f'{pretrained_emb_path}/old_glove_6B/embedding_glove.p', 'rb'))
     vocab = pkl.load(open(f'{pretrained_emb_path}/old_glove_6B/vocab.pkl', 'rb'))
@@ -327,12 +350,5 @@ def make_node2id_eng_text(config: Config):
             # print('error:', word)
             embs.append(np.zeros(300, dtype=np.float64))
     print('err in word count', err_count)
-    pkl.dump(np.array(embs, dtype=np.float64), open('./{}_data/word_emb.pkl'.format(dataset_name), 'wb'))
+    pkl.dump(np.array(embs, dtype=np.float64), open(f'{config.data_path}/word_emb.pkl', 'wb'))
 
-
-dataset_name = 'snippets'
-if dataset_name in ['mr', 'snippets', 'tagmynews']:
-    remove_StopWord = True
-else:
-    remove_StopWord = False
-make_node2id_eng_text(dataset_name, remove_StopWord)
