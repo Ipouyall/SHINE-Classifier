@@ -12,19 +12,21 @@ from sklearn import metrics
 from model import SHINE
 from utils import fetch_to_tensor
 
+from.config import Config
+
 
 class Trainer(object):
-    def __init__(self, params):
-        self.dataset_name = params.dataset
-        self.max_epoch = params.max_epoch
-        self.save_path = params.save_path
-        self.device = params.device
-        self.hidden_size = params.hidden_size
-        self.lr = params.lr
-        self.weight_decay = params.weight_decay
-        self.concat_word_emb = params.concat_word_emb
-        self.type_names = params.type_num_node
-        self.data_path = params.data_path
+    def __init__(self, config: Config):
+        self.dataset_name = config.dataset
+        self.max_epoch = config.max_epoch
+        self.save_path = config.save_path
+        self.device = config.device
+        self.hidden_size = config.hidden_size
+        self.lr = config.learning_rate
+        self.weight_decay = config.weight_decay
+        self.concat_word_emb = config.concat_word_emb
+        self.type_names = config.type_num_node
+        self.data_path = config.data_path
 
         (self.adj_dict,
          self.features_dict,
@@ -72,12 +74,6 @@ class Trainer(object):
         best_valid_epoch = 0
         best_valid_f1 = 0
         best_valid_acc = 0
-        acc_valid = 0
-        loss_valid = 0
-        f1_valid = 0
-        acc_test = 0
-        loss_test = 0
-        f1_test = 0
         best_acc = 0
         best_f1 = 0
         for i in range(1, self.max_epoch + 1):
@@ -91,7 +87,7 @@ class Trainer(object):
             self.optim.step()
             loss = loss.item()
             acc = torch.eq(torch.argmax(train_scores, dim=-1), train_labels).float().mean().item()
-            print('Epoch {}  loss: {:.4f} acc: {:.4f} time{:.4f}'.format(i, loss, acc, time.time() - t))
+            print(f'Epoch {i}\tloss: {loss:.4f}\tacc: {acc:.4f}\ttime: {time.time() - t:.2f}(s)')
             if i % 5 == 0:
                 acc_valid, loss_valid, f1_valid, acc_test, loss_test, f1_test = self.test(i)
                 if acc_test > global_best_acc:
@@ -106,11 +102,11 @@ class Trainer(object):
                     best_valid_epoch = i
                 best_acc = global_best_acc
                 best_f1 = global_best_f1
-                best_epoch = global_best_epoch
-            if i % 50 == 0:
-                print('VALID: VALID ACC', best_valid_acc, ' VALID F1', best_valid_f1, 'EPOCH', best_valid_epoch)
-                print('VALID: TEST ACC', best_test_acc, 'TEST F1', best_test_f1, 'EPOCH', best_valid_epoch)
-                print('GLOBAL: TEST ACC', global_best_acc, 'TEST F1', global_best_f1, 'EPOCH', global_best_epoch)
+            if i % 10 == 0:
+                print("Report:")
+                print('-- VALID ACC: ', best_valid_acc, '\tVALID F1: ', best_valid_f1, '\tEPOCH: ', best_valid_epoch)
+                print('-- VALID: TEST ACC: ', best_test_acc, '\tTEST F1: ', best_test_f1, '\tEPOCH: ', best_valid_epoch)
+                print('++ GLOBAL: TEST ACC: ', global_best_acc, '\tTEST F1: ', global_best_f1, '\tEPOCH: ', global_best_epoch)
         return best_acc, best_f1
 
     def test(self, epoch):
@@ -128,16 +124,17 @@ class Trainer(object):
             acc_valid = torch.eq(torch.argmax(valid_scores, dim=-1), valid_labels).float().mean().item()
             f1_valid = metrics.f1_score(valid_labels.detach().cpu().numpy(),
                                         torch.argmax(valid_scores, -1).detach().cpu().numpy(), average='macro')
-            print('Epoch {}  loss: {:.4f} acc: {:.4f}'.format(epoch, loss_train, acc_train),
-                  '\nValid  loss: {:.4f}  acc: {:.4f}  f1: {:.4f}'.format(loss_valid, acc_valid, f1_valid))
+            print(f'Epoch {epoch}'+
+                  f':::::train>> loss: {loss_train:.4f}\tacc: {acc_train:.4f}\n' +
+                  f':::::valid>> loss: {loss_valid:.4f}\tacc: {acc_valid:.4f}\tf1: {f1_valid:.4f}')
             test_scores = output[self.test_idx]
             test_labels = self.labels[self.test_idx]
             loss_test = F.cross_entropy(test_scores, test_labels).item()
             acc_test = torch.eq(torch.argmax(test_scores, dim=-1), test_labels).float().mean().item()
             f1_test = metrics.f1_score(test_labels.detach().cpu().numpy(),
-                                       torch.argmax(test_scores, -1).detach().cpu().numpy(), average='macro')
-            print('Test  loss: {:.4f} acc: {:.4f} f1: {:.4f} time: {:.4f}'.format(loss_test, acc_test, f1_test,
-                                                                                  time.time() - t))
+                                       torch.argmax(test_scores, -1).detach().cpu().numpy(),
+                                       average='macro')
+            print(f':::::Test >> loss: {loss_test:.4f}\tacc: {acc_test:.4f} f1: {f1_test:.4f} time: {time.time() - t:.2f}(s)')
         self.model.training = True
         return acc_valid, loss_valid, f1_valid, acc_test, loss_test, f1_test
 
@@ -193,7 +190,6 @@ class Trainer(object):
             label_dict[label].append(j)
         len_train_idx = len(label_dict) * 20
         train_list = []
-        valid_list = []
         byclass = True if self.dataset_name == 'ohsu_title' else False
         if not byclass:
             for i in label_dict.items():

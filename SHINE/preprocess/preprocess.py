@@ -9,6 +9,8 @@ import numpy as np
 from scipy.sparse import coo_matrix
 from tqdm import tqdm
 
+from SHINE.config import Config
+
 
 def clean_str(string, use=True):
     """
@@ -119,7 +121,7 @@ def find_case_insensitive_file(directory, target_filename):
     return None
 
 
-def make_node2id_eng_text(dataset_name, remove_StopWord=False):
+def make_node2id_eng_text(config: Config):
     stop_word = load_stopwords('preprocess/stopwords_en.txt')
     stop_word.add('')
     os.makedirs(f'./{dataset_name}_data', exist_ok=True)
