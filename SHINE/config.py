@@ -1,6 +1,6 @@
 import os.path
 from dataclasses import dataclass
-from typing import Iterable, Union, Tuple
+from typing import Union, Tuple
 
 import torch
 

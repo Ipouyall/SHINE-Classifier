@@ -4,20 +4,21 @@ import torch.nn.functional as F
 
 from GCN import GCN
 from utils import aggregate
+from SHINE.config import Config
 
 
 class SHINE(nn.Module):
-    def __init__(self, adj_dict, features_dict, in_features_dim, out_features_dim, params):
+    def __init__(self, adj_dict, features_dict, in_features_dim, out_features_dim, config: Config):
         super(SHINE, self).__init__()
-        self.threshold = params.threshold
+        self.threshold = config.threshold
         self.adj = adj_dict
         self.feature = features_dict
         self.in_features_dim = in_features_dim
         self.out_features_dim = out_features_dim
-        self.type_num = len(params.type_num_node)
-        self.drop_out = params.drop_out
-        self.concat_word_emb = params.concat_word_emb
-        self.device = params.device
+        self.type_num = len(config.type_num_node)
+        self.drop_out = config.drop_out
+        self.concat_word_emb = config.concat_word_emb
+        self.device = config.device
         self.GCNs = []
         self.GCNs_2 = []
 

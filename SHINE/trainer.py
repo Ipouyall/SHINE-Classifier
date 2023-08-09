@@ -50,7 +50,7 @@ class Trainer(object):
                                 in_fea_final]
         if self.concat_word_emb:
             self.in_features_dim[-1] += self.features_dict['word_emb'].shape[-1]
-        self.model = SHINE(self.adj_dict, self.features_dict, self.in_features_dim, self.out_features_dim, params)
+        self.model = SHINE(self.adj_dict, self.features_dict, self.in_features_dim, self.out_features_dim, config)
         self.model = self.model.to(self.device)
         total_trainable_params = sum(p.numel() for p in self.model.parameters())
         print(f'{total_trainable_params:,} training parameters.')
