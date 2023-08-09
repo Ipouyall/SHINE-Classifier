@@ -243,7 +243,7 @@ def make_node2id_eng_text(dataset_name, remove_StopWord=False):
     json.dump([adj_ent_index, ent_mapping],
               open('./{}_data/index_and_mapping.json'.format(dataset_name), 'w'), ensure_ascii=False)
     ent_emb = []
-    TransE_emb_file = np.loadtxt('./pretrained_emb/NELL_KG/entity2vec.TransE')
+    TransE_emb_file = np.loadtxt(f'{pretrained_emb_path}/NELL_KG/entity2vec.TransE')
     TransE_emb = []
 
     for i in range(len(TransE_emb_file)):
